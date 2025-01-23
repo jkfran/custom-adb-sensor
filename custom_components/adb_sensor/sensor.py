@@ -106,6 +106,12 @@ class ADBSensor(SensorEntity):
 
     async def async_update(self):
         """Fetch the state by running the ADB command."""
+        if not self.hass.services.has_service("androidtv", "adb_command"):
+            _LOGGER.warning(
+                "Service 'androidtv.adb_command' is not available. Skipping update."
+            )
+            return
+
         try:
             # 1) Call the androidtv.adb_command service
             await self.hass.services.async_call(
