@@ -33,13 +33,29 @@ sensor:
     adb_command: "dumpsys window | grep mCurrentFocus"
 ```
 
+or better:
+
+```yaml
+sensor:
+  - platform: adb_sensor
+    name: Fire TV Current App
+    adb_entity_id: media_player.fire_hd_8_12th_gen_adb
+    adb_command: "dumpsys window | grep mCurrentFocus"
+    value_template: >
+      {% for line in value.split('\n') %}
+      {% if "mCurrentFocus=" in line %}
+      {{ line.split('=')[-1].split('{')[-1].split('}')[0].split()[-1] }}
+      {% endif %}
+      {% endfor %}
+```
+
 ### Parameters
 
-| Parameter       | Description                                                                 | Required | Default       |
-|-----------------|-----------------------------------------------------------------------------|----------|---------------|
-| `name`          | The name of the sensor.                                                    | Yes      | `ADB Sensor`  |
-| `adb_entity_id` | The entity ID of the Android TV/Fire TV media player.                      | Yes      | None          |
-| `adb_command`   | The ADB command to run.                                                    | Yes      | None          |
+| Parameter       | Description                                           | Required | Default      |
+| --------------- | ----------------------------------------------------- | -------- | ------------ |
+| `name`          | The name of the sensor.                               | Yes      | `ADB Sensor` |
+| `adb_entity_id` | The entity ID of the Android TV/Fire TV media player. | Yes      | None         |
+| `adb_command`   | The ADB command to run.                               | Yes      | None         |
 
 ## Example Use Case: Detect Current App
 
@@ -50,6 +66,7 @@ The example above will run the `dumpsys window | grep mCurrentFocus` command to 
 You can extend the sensor to support other ADB commands. For example:
 
 ### Monitor Lockscreen Status
+
 ```yaml
 sensor:
   - platform: custom_adb_sensor
@@ -61,6 +78,7 @@ sensor:
 The state will update to "Locked" or "Unlocked" based on the ADB output.
 
 ### Custom Logic
+
 The component can be adapted to parse custom data from any ADB command output. Review the `sensor.py` file for details on how to add your own parsing logic.
 
 ## Debugging
