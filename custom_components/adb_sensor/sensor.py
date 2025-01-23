@@ -9,25 +9,17 @@ from homeassistant.helpers import template
 
 DOMAIN = "adb_sensor"
 DEFAULT_NAME = "ADB Sensor"
-DEFAULT_SCAN_INTERVAL = 30  # seconds
+# Default interval of 30 seconds as a timedelta
+DEFAULT_SCAN_INTERVAL = timedelta(seconds=30)
 
 _LOGGER = logging.getLogger(__name__)
 
-# ------------------------------------------------------------------
 # 1) PLATFORM SCHEMA
-# ------------------------------------------------------------------
-# We extend Home Assistant's default PLATFORM_SCHEMA to handle:
-#   - name (optional, default "ADB Sensor")
-#   - scan_interval (optional, default 30s)
-#   - adb_entity_id (required)
-#   - adb_command (required)
-#   - value_template (optional)
+#    - Use cv.time_period to ensure we get a timedelta for `scan_interval`
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
     {
         vol.Optional(CONF_NAME, default=DEFAULT_NAME): cv.string,
-        vol.Optional(
-            CONF_SCAN_INTERVAL, default=DEFAULT_SCAN_INTERVAL
-        ): cv.positive_int,
+        vol.Optional(CONF_SCAN_INTERVAL, default=DEFAULT_SCAN_INTERVAL): cv.time_period,
         vol.Required("adb_entity_id"): cv.string,
         vol.Required("adb_command"): cv.string,
         vol.Optional("value_template"): cv.string,
@@ -35,14 +27,11 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
 )
 
 
-# ------------------------------------------------------------------
 # 2) SETUP PLATFORM
-# ------------------------------------------------------------------
-# Called by Home Assistant to set up the sensor platform.
 async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
     """Set up the ADB Sensor platform."""
     name = config[CONF_NAME]
-    scan_interval_seconds = config[CONF_SCAN_INTERVAL]
+    scan_interval_td = config[CONF_SCAN_INTERVAL]  # This is a timedelta
     adb_entity_id = config["adb_entity_id"]
     adb_command = config["adb_command"]
     value_template = config.get("value_template")
@@ -54,17 +43,14 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
         adb_entity_id=adb_entity_id,
         adb_command=adb_command,
         value_template=value_template,
-        scan_interval=scan_interval_seconds,
+        scan_interval=scan_interval_td,
     )
 
-    # `update_before_add=True` means it calls async_update() once before adding,
-    # so you see an initial state quickly.
+    # `update_before_add=True` triggers one update before adding to Home Assistant
     async_add_entities([sensor], update_before_add=True)
 
 
-# ------------------------------------------------------------------
 # 3) ADB SENSOR ENTITY
-# ------------------------------------------------------------------
 class ADBSensor(SensorEntity):
     """Representation of an ADB Sensor."""
 
@@ -85,23 +71,23 @@ class ADBSensor(SensorEntity):
         self._adb_entity_id = adb_entity_id
         self._adb_command = adb_command
         self._value_template = value_template
-        self._scan_interval = scan_interval  # in seconds
+
+        # Store the user-defined scan_interval as a timedelta
+        # (Home Assistant expects a timedelta in scan_interval)
+        self._scan_interval = scan_interval
 
     @property
     def should_poll(self):
-        """
-        Return True to let Home Assistant schedule regular updates
-        based on `scan_interval`.
-        """
+        """Return True to let Home Assistant poll at our scan_interval."""
         return True
 
     @property
     def scan_interval(self):
         """
-        Return a timedelta for Home Assistant to control how often
-        async_update() is polled.
+        Return the polling interval as a timedelta.
+        Home Assistant will poll `async_update()` at this interval.
         """
-        return timedelta(seconds=self._scan_interval)
+        return self._scan_interval
 
     @property
     def name(self):
@@ -119,10 +105,7 @@ class ADBSensor(SensorEntity):
         return self._attributes
 
     async def async_update(self):
-        """
-        Fetch the state by running the ADB command.
-        Home Assistant calls this automatically at the scan_interval.
-        """
+        """Fetch the state by running the ADB command."""
         try:
             # 1) Call the androidtv.adb_command service
             await self.hass.services.async_call(
