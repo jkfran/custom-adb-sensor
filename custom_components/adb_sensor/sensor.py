@@ -63,10 +63,19 @@ class ADBSensor(SensorEntity):
             blocking=True,
         )
 
+        # Retrieve the entity state
+        entity_state = self.hass.states.get(self._adb_entity_id)
+
+        if entity_state is None:
+            # Handle the case where the ADB entity does not exist
+            self._state = "Entity Not Found"
+            self._attributes = {
+                "error": f"Entity {self._adb_entity_id} not found"
+            }
+            return
+
         # Retrieve the adb_response from the entity's state attributes
-        adb_response = self.hass.states.get(
-            self._adb_entity_id
-        ).attributes.get("adb_response", "")
+        adb_response = entity_state.attributes.get("adb_response", "")
 
         if adb_response:
             # Use the template to parse the value if provided
