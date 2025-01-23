@@ -1,7 +1,9 @@
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.const import CONF_NAME
 from homeassistant.helpers import template
+import logging
 
+_LOGGER = logging.getLogger(__name__)
 DOMAIN = "adb_sensor"
 
 
@@ -97,5 +99,6 @@ class ADBSensor(SensorEntity):
             rendered = await tpl.async_render({"value": adb_response})
             return rendered.strip() or "Empty Template Result"
         except Exception as e:
+            _LOGGER.error(f"ADB sensor - Template rendering error: {e}")
             self._attributes["error"] = f"Template rendering error: {e}"
             return "Template Error"
