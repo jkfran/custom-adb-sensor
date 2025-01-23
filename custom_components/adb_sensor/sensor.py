@@ -1,6 +1,6 @@
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.const import CONF_NAME
-import homeassistant.helpers.template as template
+from homeassistant.helpers import template
 
 DOMAIN = "adb_sensor"
 
@@ -80,7 +80,7 @@ class ADBSensor(SensorEntity):
         if adb_response:
             # Use the template to parse the value if provided
             if self._value_template:
-                self._state = self._render_template(adb_response)
+                self._state = await self._render_template(adb_response)
             else:
                 self._state = adb_response.strip()
             self._attributes = {"adb_response": adb_response}
@@ -88,11 +88,14 @@ class ADBSensor(SensorEntity):
             self._state = "Unknown"
             self._attributes = {"adb_response": "No response"}
 
-    def _render_template(self, adb_response):
-        """Render the value using the provided template."""
+    async def _render_template(self, adb_response: str) -> str:
+        """Render the value using the provided template asynchronously."""
         try:
+            # Create the Template object, passing in 'hass' so it has access
+            # to all of Home Assistant's template features.
             tpl = template.Template(self._value_template, self.hass)
-            return tpl.render({"value": adb_response})
+            rendered = await tpl.async_render({"value": adb_response})
+            return rendered.strip() or "Empty Template Result"
         except Exception as e:
             self._attributes["error"] = f"Template rendering error: {e}"
             return "Template Error"
