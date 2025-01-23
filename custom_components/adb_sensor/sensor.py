@@ -96,7 +96,7 @@ class ADBSensor(SensorEntity):
             # Create the Template object, passing in 'hass' so it has access
             # to all of Home Assistant's template features.
             tpl = template.Template(self._value_template, self.hass)
-            rendered = await tpl.async_render({"value": adb_response})
+            rendered = tpl.async_render({"value": adb_response})
             return rendered.strip() or "Empty Template Result"
         except Exception as e:
             _LOGGER.error(f"ADB sensor - Template rendering error: {e}")
