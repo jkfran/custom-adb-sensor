@@ -1,0 +1,12 @@
+{
+    "name": "Custom ADB Sensor",
+    "content_in_root": false,
+    "domains": ["adb_sensor"],
+    "country": ["global"],
+    "repo": "https://github.com/jkfran/custom-adb-sensor",
+    "documentation": "https://github.com/jkfran/custom-adb-sensor",
+    "issue_tracker": "https://github.com/jkfran/custom-adb-sensor/issues",
+    "codeowners": ["@jkfran"],
+    "homeassistant": "2023.0.0",
+    "integration_type": "integration"
+}

@@ -1,0 +1,9 @@
+{
+  "domain": "adb_sensor",
+  "name": "ADB Sensor",
+  "version": "1.0.0",
+  "documentation": "https://example.com",
+  "dependencies": ["androidtv"],
+  "codeowners": ["@your_github_username"],
+  "requirements": []
+}
