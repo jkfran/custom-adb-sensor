@@ -17,9 +17,9 @@
 2. Copy the `custom_adb_sensor` folder into your Home Assistant `custom_components` directory.
 3. Restart Home Assistant.
 
-### HACS Installation (Planned)
+### HACS Installation
 
-Stay tuned for future HACS compatibility!
+Add this repo in HACS to stay up-to-date.
 
 ## Configuration
 
